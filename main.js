@@ -9,6 +9,7 @@ var tileSize = 8;
 
 var engine = {
   ants: [],
+  pheromones: [],
   world: [],
   currentDepth: 0,
   init: function() {
@@ -53,6 +54,15 @@ var engine = {
     for (var i = 0; i < this.ants.length; i++) {
       this.ants[i].update(this.world)
     }
+
+    for (var i = 0; i < this.pheromones.length; i++) {
+      if (this.pheromones[i].currentStrength <= 0) {
+        this.pheromones.splice(i,1);
+        i--;
+        continue;
+      }
+      this.pheromones[i].update()
+    }
   },
   draw: function() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -80,6 +90,10 @@ var engine = {
           ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
         }
       }
+    }
+
+    for (var i = 0; i < this.pheromones.length; i++) {
+      this.pheromones[i].draw()
     }
 
     for (var i = 0; i < this.ants.length; i++) {
@@ -116,6 +130,25 @@ function up() {
 function down() {
   if (engine.currentDepth < engine.world.length - 1)
     engine.currentDepth++;
+}
+
+class Pheromone {
+  constructor(x,y, strength, depth) {
+    this.x = x;
+    this.y = y;
+    this.startingStrength = strength;
+    this.currentStrength = strength;
+    this.depth = depth;
+  }
+  update() {
+    this.currentStrength -= .01;
+  }
+  draw() {
+    if (this.depth !== engine.currentDepth) return;
+    ctx.fillStyle = 'rgba(255,255,0, ' + this.currentStrength / this.startingStrength + ')';
+    ctx.fillRect(this.x,this.y,2,2);
+  }
+
 }
 
 class Ant {
@@ -163,6 +196,7 @@ class Ant {
       this.rotation += this.bumpRotation;
     } else {
       this.moveForward(1);
+      this.dropPheromone();
     }
   }
 
@@ -247,6 +281,10 @@ class Ant {
     }
   }
 
+  dropPheromone() {
+    var pheromone = new Pheromone(this.x,this.y, 1, this.depth)
+    engine.pheromones.push(pheromone)
+  }
   checkLeftAntenna(world) {
     var antenX = this.x + 3 * Math.cos(wrapDir(this.rotation - this.antennaAngle ) * Math.PI / 180);
     var antenY = this.y + 3 * Math.sin(wrapDir(this.rotation - this.antennaAngle ) * Math.PI / 180);
