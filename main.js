@@ -5,7 +5,7 @@ var ctx = canvas.getContext("2d");
 
 var width = 640;
 var height = 480;
-var tileSize = 16;
+var tileSize = 8;
 
 var engine = {
   ants: [],
@@ -128,7 +128,7 @@ class Ant {
     this.antennaLeftContact = false;
     this.antennaRightContact = false;
     this.rotation = Math.floor(Math.random() * 360);
-    this.antennaAngle = 35;
+    this.antennaAngle = 20;
     this.bumpCounter = 0;
     this.bumpRotation = 0;
   }
@@ -142,28 +142,28 @@ class Ant {
     this.antennaLeftContact = this.checkLeftAntenna(world);
     this.antennaRightContact = this.checkRightAntenna(world);
 
-    if (this.antennaLeftContact && this.antennaRightContact) {
-      this.bumpCounter = 50;
-      this.bumpRotation = (Math.floor(Math.random() * 3) - 1) * 2 || 2;
+    if (!this.bumpCounter) {
+      if (this.antennaLeftContact && this.antennaRightContact) {
+        this.bumpCounter = 50;
+        this.bumpRotation = (Math.floor(Math.random() * 3) - 1) * 2 || 2;
+      }
+      else if (this.antennaLeftContact) {
+        this.bumpCounter = 10;
+        this.bumpRotation = 10;
+      }
+      else if (this.antennaRightContact) {
+        this.bumpCounter = 10;
+        this.bumpRotation = -10;
+      }
     }
-    else if (this.antennaLeftContact) {
-      this.bumpCounter = 10;
-      this.bumpRotation = 10;
-    }
-    else if (this.antennaRightContact) {
-      this.bumpCounter = 10;
-      this.bumpRotation = -10;
-    }
+
 
     if (this.bumpCounter > 0) {
       this.bumpCounter--;
       this.rotation += this.bumpRotation;
-      this.moveBackward(1);
-    }
-    else {
+    } else {
       this.moveForward(1);
     }
-    //Math.floor(Math.random() * 20) - 10;
   }
 
   draw() {
@@ -200,12 +200,19 @@ class Ant {
   }
 
   moveForward(speed) {
-    var newX = this.x + speed * Math.cos(this.rotation * Math.PI / 180);
-    var newY = this.y + speed * Math.sin(this.rotation * Math.PI / 180);
+    var velX = speed * Math.cos(this.rotation * Math.PI / 180);
+    var velY = speed * Math.sin(this.rotation * Math.PI / 180);
 
-    var block = getWorldBlock(engine.world,newX,newY,this.depth)
-    if (block === -1) return;
-    if (block === 1) return;
+    var newX = this.x + velX;
+    var newY = this.y + velY;
+
+    if (getWorldBlock(engine.world, newX, this.y,this.depth) === 1) {
+      newX -= velX
+    }
+
+    if (getWorldBlock(engine.world, this.x, newY, this.depth) === 1) {
+      newY -= velY
+    }
 
     if (newY < height && newY > 0) {
       this.y = newY;
@@ -217,12 +224,19 @@ class Ant {
   }
 
   moveBackward(speed) {
-    var newX = this.x - speed * Math.cos(this.rotation * Math.PI / 180);
-    var newY = this.y - speed * Math.sin(this.rotation * Math.PI / 180);
+    var velX = speed * Math.cos(this.rotation * Math.PI / 180);
+    var velY = speed * Math.sin(this.rotation * Math.PI / 180);
 
-    var block = getWorldBlock(engine.world,newX,newY,this.depth)
-    if (block === -1) return;
-    if (block === 1) return;
+    var newX = this.x - velX;
+    var newY = this.y - velY;
+
+    if (getWorldBlock(engine.world, newX, this.y,this.depth) === 1) {
+      newX += velX
+    }
+
+    if (getWorldBlock(engine.world, this.x, newY, this.depth) === 1) {
+      newY += velY
+    }
 
     if (newY <= height && newY >= 0) {
       this.y = newY;
