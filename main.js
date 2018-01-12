@@ -5,21 +5,34 @@ var engine = {
   ants: [],
   init: function() {
     for (var i = 0; i < 100; i++) {
-      this.ants.push({x:Math.floor(Math.random()*640), y: Math.floor(Math.random()*480)})
+      this.ants.push(new Ant(Math.floor(Math.random()*640),Math.floor(Math.random()*480)))
     }
   },
   update: function() {
     for (var i = 0; i < this.ants.length; i++) {
-      this.ants[i].x += Math.floor(Math.random() * 3) - 1
-      this.ants[i].y += Math.floor(Math.random() * 3) - 1
+      this.ants[i].update()
     }
-    console.log('update')
   },
   draw: function() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (var i = 0; i < this.ants.length; i++) {
-      ctx.fillRect(this.ants[i].x,this.ants[i].y,1,1);
+      this.ants[i].draw()
     }
+  }
+}
+
+class Ant {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+  update() {
+    this.x += Math.floor(Math.random() * 3) - 1
+    this.y += Math.floor(Math.random() * 3) - 1
+  }
+  
+  draw() {
+    ctx.fillRect(this.x,this.y,1,1);
   }
 }
 
